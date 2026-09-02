@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Plantão Descomplicado — ECG Descomplicado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --paper:#EEEFF1;
+    --surface:#FFFFFF;
+    --ink:#13161B;
+    --ink-2:#3C434D;
+    --muted:#767D88;
+    --line:#DBDDE1;
+    --line-strong:#BCC0C7;
+    --accent:#A62B26;
+    --accent-soft:#F5E8E7;
+    --sans:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0D0F13;
+      --surface:#161A20;
+      --ink:#ECEEF1;
+      --ink-2:#B4BAC3;
+      --muted:#7F8794;
+      --line:#242932;
+      --line-strong:#39414D;
+      --accent:#EE6A60;
+      --accent-soft:#241819;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0D0F13;
+    --surface:#161A20;
+    --ink:#ECEEF1;
+    --ink-2:#B4BAC3;
+    --muted:#7F8794;
+    --line:#242932;
+    --line-strong:#39414D;
+    --accent:#EE6A60;
+    --accent-soft:#241819;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--sans);
+    font-size:17px;
+    line-height:1.58;
+    -webkit-font-smoothing:antialiased;
+  }
+  p{margin:0}
+  ul,ol{margin:0;padding:0;list-style:none}
+  h1,h2,h3{margin:0;font-weight:600;text-wrap:balance}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+  a:hover{border-bottom-color:var(--accent)}
+
+  .wrap{max-width:860px;margin:0 auto;padding:0 32px}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .kicker{
+    font-family:var(--mono);
+    font-size:.68rem;
+    font-weight:500;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ── abas de navegação ────────────────────────────── */
+  .tabs{
+    position:sticky;top:0;z-index:50;
+    background:color-mix(in srgb,var(--paper) 86%,transparent);
+    backdrop-filter:saturate(180%) blur(14px);
+    -webkit-backdrop-filter:saturate(180%) blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .tabs ul{display:flex;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+  .tabs ul::-webkit-scrollbar{display:none}
+  .tabs a{
+    display:block;padding:15px 0 13px;margin-right:28px;
+    font-family:var(--mono);font-size:.66rem;font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);
+    border-bottom:2px solid transparent;white-space:nowrap;
+    transition:color .18s ease,border-color .18s ease;
+  }
+  .tabs a:hover{color:var(--ink);border-bottom-color:var(--line-strong)}
+  .tabs a[aria-current="page"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .tabs li:last-child a{margin-right:0}
+
+  /* ── topo ─────────────────────────────────────────── */
+  header{padding:52px 0 8px}
+  .rule-top{height:3px;background:var(--accent);width:52px;margin-bottom:26px}
+  h1{
+    font-size:clamp(2.15rem,5.4vw,3.15rem);
+    line-height:1.03;
+    letter-spacing:-.028em;
+    font-weight:700;
+    margin:12px 0 18px;
+  }
+  .sub{color:var(--ink-2);max-width:58ch;font-size:1.04rem}
+  .sub b{color:var(--ink);font-weight:600}
+  .meta{
+    margin-top:26px;padding-top:16px;
+    border-top:1px solid var(--line-strong);
+    display:flex;gap:26px;flex-wrap:wrap;
+    font-family:var(--mono);font-size:.63rem;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+  }
+
+  /* ── tese ─────────────────────────────────────────── */
+  .thesis{
+    margin:44px 0 8px;
+    background:var(--surface);
+    border:1px solid var(--line-strong);
+    border-left:3px solid var(--accent);
+    padding:28px 30px;
+  }
+  .thesis p{font-size:1.12rem;color:var(--ink);line-height:1.5;letter-spacing:-.011em}
+  .thesis p + p{margin-top:14px;font-size:1rem;color:var(--ink-2)}
+  .thesis b{font-weight:600;color:var(--ink)}
+
+  /* ── faixa de números ─────────────────────────────── */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line-strong);
+    background:var(--surface);
+    margin:34px 0 6px;
+  }
+  .stats li{border-left:1px solid var(--line);padding:16px 14px 17px;min-width:0}
+  .stats li:first-child{border-left:0}
+  .stats .n{
+    display:block;font-family:var(--mono);font-size:1.22rem;font-weight:700;
+    color:var(--accent);line-height:1.15;font-variant-numeric:tabular-nums;
+    letter-spacing:-.02em;
+  }
+  .stats .t{
+    display:block;font-family:var(--mono);font-size:.58rem;font-weight:500;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+    margin-top:7px;line-height:1.45;
+  }
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stats li:nth-child(3){border-left:0}
+    .stats li:nth-child(n+3){border-top:1px solid var(--line)}
+  }
+
+  /* ── seções ───────────────────────────────────────── */
+  section{padding:44px 0 6px;border-top:1px solid var(--line);margin-top:44px}
+  .shead{display:flex;align-items:baseline;gap:14px;margin-bottom:20px}
+  .shead .num{
+    font-family:var(--mono);font-size:.68rem;font-weight:700;
+    letter-spacing:.15em;color:var(--accent);flex:none;
+  }
+  h2{font-size:1.42rem;letter-spacing:-.021em;line-height:1.18;font-weight:600}
+  section > p{color:var(--ink-2);max-width:66ch}
+  section > p + p{margin-top:16px}
+  section b{color:var(--ink);font-weight:600}
+  h3{
+    font-size:.92rem;margin:30px 0 10px;letter-spacing:-.005em;
+    color:var(--ink);font-weight:600;
+  }
+
+  .list{margin-top:16px;max-width:66ch}
+  .list li{
+    padding:11px 0 11px 20px;position:relative;
+    color:var(--ink-2);border-top:1px solid var(--line);
+  }
+  .list li:first-child{border-top:0;padding-top:2px}
+  .list li::before{
+    content:"";position:absolute;left:2px;top:22px;
+    width:5px;height:5px;background:var(--accent);
+  }
+  .list li:first-child::before{top:13px}
+  .list b{color:var(--ink)}
+
+  /* ── citação ──────────────────────────────────────── */
+  blockquote{
+    margin:22px 0;padding:18px 22px;
+    background:var(--surface);border:1px solid var(--line);
+    border-left:3px solid var(--accent);
+  }
+  blockquote p{font-size:1.06rem;color:var(--ink);line-height:1.45;letter-spacing:-.008em}
+  blockquote cite{
+    display:block;margin-top:10px;font-style:normal;
+    font-family:var(--mono);font-size:.62rem;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);
+  }
+
+  .quotes{margin:20px 0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+  .quotes li{background:var(--surface);padding:15px 18px}
+  .quotes q{font-size:.99rem;color:var(--ink);quotes:"“" "”"}
+  .quotes span{
+    display:block;margin-top:7px;font-family:var(--mono);font-size:.58rem;
+    letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  }
+
+  /* ── tabela ───────────────────────────────────────── */
+  .tw{overflow-x:auto;margin:22px 0;border:1px solid var(--line-strong);background:var(--surface)}
+  table{border-collapse:collapse;width:100%;min-width:520px}
+  th,td{
+    text-align:left;padding:10px 14px;
+    border-bottom:1px solid var(--line);font-size:.86rem;
+    color:var(--ink-2);vertical-align:top;
+  }
+  th{
+    font-family:var(--mono);font-size:.58rem;font-weight:700;
+    letter-spacing:.11em;text-transform:uppercase;color:var(--muted);
+    border-bottom:1px solid var(--line-strong);white-space:nowrap;
+  }
+  td.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink)}
+  tr:last-child td{border-bottom:0}
+  tr.self td{background:var(--accent-soft);color:var(--ink);font-weight:600}
+  tr.self td.num{color:var(--accent);font-weight:700}
+
+  /* ── avisos ───────────────────────────────────────── */
+  .note{
+    margin:24px 0;padding:18px 22px;
+    border:1px dashed var(--line-strong);background:var(--surface);
+  }
+  .note .lbl{
+    font-family:var(--mono);font-size:.6rem;font-weight:700;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;
+  }
+  .note p{font-size:.94rem;color:var(--ink-2)}
+  .note p + p{margin-top:10px}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);margin:22px 0}
+  .split > div{background:var(--surface);padding:18px 20px}
+  .split h4{
+    margin:0 0 10px;font-family:var(--mono);font-size:.6rem;font-weight:700;
+    letter-spacing:.13em;text-transform:uppercase;
+  }
+  .split .ok h4{color:#0E6E66}
+  :root[data-theme="dark"] .split .ok h4,
+  :root:not([data-theme="light"]) .split .ok h4{color:#4FB3A6}
+  @media (prefers-color-scheme: light){:root:not([data-theme="dark"]) .split .ok h4{color:#0E6E66}}
+  .split .no h4{color:var(--accent)}
+  .split p{font-size:.9rem;color:var(--ink-2)}
+  .split ul li{font-size:.9rem;color:var(--ink-2);padding:6px 0 6px 15px;position:relative}
+  .split ul li::before{content:"";position:absolute;left:0;top:14px;width:4px;height:4px;background:currentColor;opacity:.45}
+  @media (max-width:640px){.split{grid-template-columns:1fr}}
+
+  footer{
+    margin-top:56px;padding:26px 0 70px;border-top:1px solid var(--line-strong);
+    font-family:var(--mono);font-size:.63rem;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  }
+
+  /* ── etapas da aula ───────────────────────────────── */
+  .steps{margin:22px 0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line-strong)}
+  .steps li{
+    background:var(--surface);padding:17px 20px;
+    display:grid;grid-template-columns:80px minmax(0,1fr);gap:18px;
+  }
+  .steps .t{
+    font-family:var(--mono);font-size:.62rem;font-weight:700;letter-spacing:.07em;
+    color:var(--accent);padding-top:4px;white-space:nowrap;
+  }
+  .steps h3{margin:0 0 7px;font-size:.96rem}
+  .steps p{font-size:.9rem;color:var(--ink-2)}
+  .steps .why{
+    display:block;margin-top:10px;font-family:var(--mono);font-size:.58rem;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--muted);line-height:1.5;
+  }
+  @media (max-width:560px){.steps li{grid-template-columns:1fr;gap:7px}}
+
+  /* ── fluxo de entrada ─────────────────────────────── */
+  .flow{
+    margin:22px 0;display:grid;grid-template-columns:repeat(5,1fr);
+    gap:1px;background:var(--line);border:1px solid var(--line-strong);
+  }
+  .flow li{background:var(--surface);padding:16px 15px}
+  .flow .n{
+    display:block;font-family:var(--mono);font-size:.57rem;font-weight:700;
+    letter-spacing:.1em;color:var(--accent);margin-bottom:9px;
+  }
+  .flow .h{display:block;font-size:.89rem;font-weight:600;color:var(--ink);line-height:1.3}
+  .flow .d{display:block;margin-top:7px;font-size:.78rem;color:var(--muted);line-height:1.42}
+  @media (max-width:760px){.flow{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:400px){.flow{grid-template-columns:1fr}}
+
+  /* ── oferta ───────────────────────────────────────── */
+  .price{
+    margin:28px 0 6px;background:var(--surface);
+    border:1px solid var(--line-strong);border-top:3px solid var(--accent);
+    padding:26px 30px;display:grid;grid-template-columns:auto minmax(0,1fr);
+    gap:36px;align-items:center;
+  }
+  .price .fig{
+    font-family:var(--mono);font-size:2.55rem;font-weight:700;color:var(--accent);
+    line-height:1;letter-spacing:-.03em;white-space:nowrap;font-variant-numeric:tabular-nums;
+  }
+  .price .lbl{
+    display:block;font-family:var(--mono);font-size:.59rem;font-weight:500;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:11px;
+  }
+  .price p{font-size:.96rem;color:var(--ink-2)}
+  .price b{color:var(--ink);font-weight:600}
+  @media (max-width:640px){.price{grid-template-columns:1fr;gap:20px}}
+
+  /* ── checklist ────────────────────────────────────── */
+  .checks{margin:22px 0;display:grid;gap:1px;background:var(--line);border:1px solid var(--line-strong)}
+  .checks li{
+    background:var(--surface);padding:14px 18px 14px 42px;position:relative;
+    font-size:.94rem;color:var(--ink-2);
+  }
+  .checks li::before{
+    content:"";position:absolute;left:18px;top:18px;
+    width:11px;height:11px;border:1.5px solid var(--accent);
+  }
+  .checks b{color:var(--ink);font-weight:600}
+
+  .split .obj h4{color:var(--accent)}
+</style>
+</head>
+<body>
+
+<!-- ─────────────────────────────────────────────────────────────
+     ABAS · para adicionar uma página nova ao projeto, basta somar
+     um <li> abaixo. A aba da página em que se está leva
+     aria-current="page" — é o que a pinta de vermelho.
+     ───────────────────────────────────────────────────────────── -->
+<nav class="tabs">
+  <div class="wrap">
+    <ul>
+      <li><a href="https://luswarghi.com/cronogramavitor/">Cronograma de entregas</a></li>
+      <li><a href="https://luswarghi.com/ecgcoutinho/">Pesquisa de mercado</a></li>
+      <li><a href="https://luswarghi.com/plantaovitor/" aria-current="page">Plantão Descomplicado</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<header>
+  <div class="rule-top"></div>
+  <p class="kicker">Ação com a base · ECG Descomplicado</p>
+  <h1>Uma aula ao vivo para os 330 que já compraram</h1>
+  <p class="sub">
+    Aula gratuita e fechada para alunos. Três eletros reais de plantão, lidos ao vivo com a turma —
+    e dessa vez a leitura não para no diagnóstico, vai até a conduta. <b>Para entrar, o aluno
+    preenche a pesquisa.</b> No final, a oferta de continuidade.
+  </p>
+  <div class="meta">
+    <span>Setembro de 2026</span>
+    <span>Matheus Luswarghi</span>
+    <span>Documento interno</span>
+  </div>
+</header>
+
+<div class="thesis">
+  <p>
+    Duas coisas estão paradas ao mesmo tempo: a base de <b>330 alunos</b> nunca foi pesquisada de
+    verdade, e quem termina o ECG Descomplicado <b>não tem para onde ir</b>.
+  </p>
+  <p>
+    Uma única aula ao vivo resolve as duas — e sem custo de mídia, porque a base já é nossa. A
+    pesquisa vira o ingresso do evento, e a oferta de continuidade estreia diante do público mais
+    quente que existe, antes de precisar sobreviver ao tráfego frio.
+  </p>
+</div>
+
+<ul class="stats">
+  <li><span class="n">330</span><span class="t">alunos na base hoje</span></li>
+  <li><span class="n">7</span><span class="t">fichas de matrícula respondidas até agora</span></li>
+  <li><span class="n">0</span><span class="t">produtos na esteira depois do ECG</span></li>
+  <li><span class="n">14 dias</span><span class="t">do sim até a aula no ar</span></li>
+</ul>
+
+<!-- 01 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">01</span><h2>Os dois objetivos</h2></div>
+
+  <p>
+    A aula não é um evento isolado nem um favor pedido à base. Ela é o jeito mais barato de resolver
+    duas travas do projeto ao mesmo tempo — e cada uma delas, sozinha, já justificaria a ação.
+  </p>
+
+  <div class="split">
+    <div class="obj">
+      <h4>A · Descobrir quem compra</h4>
+      <p>
+        Todo o retrato de persona do projeto está apoiado em sete fichas de matrícula. É desse
+        número que sai decisão de preço, de anúncio e de roteiro da VSL nova. Uma ação leva os 330
+        ao formulário — e a amostra deixa de ser indício para virar dado.
+      </p>
+    </div>
+    <div class="obj">
+      <h4>B · Abrir o segundo degrau</h4>
+      <p>
+        Quem termina o curso hoje não tem próximo passo. A aula estreia a oferta de continuidade
+        com o público que já confia no Dr. Vitor. Se converte aqui, tem chance no funil. Se não
+        converte, descobrimos isso em duas semanas em vez de descobrir depois de produzir tudo.
+      </p>
+    </div>
+  </div>
+
+  <div class="note">
+    <span class="lbl">O que não se diz no convite</span>
+    <p>
+      O convite é feito por conteúdo, não por venda. Em nenhum momento se anuncia oferta — o que se
+      diz, em uma linha de rodapé, é que no final existe uma novidade para quem quiser continuar.
+    </p>
+    <p>
+      E a palavra <b>pesquisa</b> nunca aparece para o aluno. Do ponto de vista dele, ele está
+      pegando o ingresso da aula.
+    </p>
+  </div>
+</section>
+
+<!-- 02 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">02</span><h2>A aula, minuto a minuto</h2></div>
+
+  <p>
+    Cem minutos. A regra que sustenta a retenção é simples: <b>o aluno escreve a leitura no chat
+    antes de o Dr. Vitor revelar</b>. Quem participa, fica — e o chat cheio é o que faz a gravação
+    servir depois como peça perene.
+  </p>
+
+  <ul class="steps">
+    <li>
+      <span class="t">0–5 min</span>
+      <div>
+        <h3>Abertura e contrato</h3>
+        <p>
+          O que a aula entrega e como ela funciona. Ele avisa, já na abertura, que no final
+          apresenta uma novidade.
+        </p>
+        <span class="why">Anunciar o final aumenta a retenção na virada — o oposto de esconder</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">5–15 min</span>
+      <div>
+        <h3>A dobradiça</h3>
+        <p>
+          Onde o ECG Descomplicado termina e o medo começa: você lê certo e, a partir dali, precisa
+          decidir. Entra aqui a história da aluna que mostrou o eletro do pai — liberado do
+          hospital sem que a alteração fosse reconhecida.
+        </p>
+        <span class="why">Ler certo e não agir dá no mesmo que não ter lido</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">15–35 min</span>
+      <div>
+        <h3>Caso 1 · o que quase todo mundo acerta</h3>
+        <p>
+          Dor torácica. Traçado na tela, leitura no chat, depois a sequência completa — e a conduta
+          dos dez primeiros minutos.
+        </p>
+        <span class="why">Constrói confiança e enche o chat logo no começo</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">35–55 min</span>
+      <div>
+        <h3>Caso 2 · a armadilha</h3>
+        <p>
+          Um traçado que parece uma coisa e é outra. A maioria erra ao vivo — e ele nomeia isso na
+          hora: não faltou conhecimento, faltou já ter visto antes.
+        </p>
+        <span class="why">É o bloco que vende: a lacuna deixa de ser argumento e vira experiência</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">55–70 min</span>
+      <div>
+        <h3>Caso 3 · o paciente que não espera</h3>
+        <p>
+          Paciente instável: droga vasoativa, dose, quando iniciar. Abre o território inteiro que
+          existe depois do traçado.
+        </p>
+        <span class="why">Um dos temas mais pedidos nas fichas de matrícula</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">70–80 min</span>
+      <div>
+        <h3>A virada</h3>
+        <p>
+          Ele volta nos três casos e mostra o padrão: o que faltou foi repertório, não estudo. E
+          repertório não cabe numa aula — é caso atrás de caso, com alguém corrigindo.
+        </p>
+        <span class="why">A transição sai do próprio conteúdo, sem mudança de tom</span>
+      </div>
+    </li>
+    <li>
+      <span class="t">80–100 min</span>
+      <div>
+        <h3>A oferta e as perguntas</h3>
+        <p>
+          Apresentação da Sala de Casos e perguntas ao vivo — que também alimentam a copy da página
+          de vendas depois.
+        </p>
+        <span class="why">Encerra com o chat aberto</span>
+      </div>
+    </li>
+  </ul>
+</section>
+
+<!-- 03 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">03</span><h2>Como o aluno entra</h2></div>
+
+  <ul class="flow">
+    <li>
+      <span class="n">01</span>
+      <span class="h">Disparo</span>
+      <span class="d">WhatsApp e e-mail para os 330, em três ondas</span>
+    </li>
+    <li>
+      <span class="n">02</span>
+      <span class="h">Página do evento</span>
+      <span class="d">Data, promessa e um botão só</span>
+    </li>
+    <li>
+      <span class="n">03</span>
+      <span class="h">Pesquisa</span>
+      <span class="d">Sete perguntas, noventa segundos</span>
+    </li>
+    <li>
+      <span class="n">04</span>
+      <span class="h">Grupo no WhatsApp</span>
+      <span class="d">O link aparece só depois de responder</span>
+    </li>
+    <li>
+      <span class="n">05</span>
+      <span class="h">Aula ao vivo</span>
+      <span class="d">Lembretes e aquecimento saem pelo grupo</span>
+    </li>
+  </ul>
+
+  <div class="note">
+    <span class="lbl">O detalhe que faz a pesquisa funcionar</span>
+    <p>
+      O link do grupo não vai no disparo. Ele existe em um lugar só: a tela de obrigado do
+      formulário. É isso que transforma taxa de resposta em consequência natural, e não em favor
+      pedido — ninguém preenche formulário por gentileza, mas todo mundo pega o ingresso.
+    </p>
+  </div>
+
+  <h3>O convite</h3>
+  <blockquote>
+    <p>
+      <b>PLANTÃO DESCOMPLICADO</b> — aula ao vivo e exclusiva para alunos do ECG Descomplicado.
+    </p>
+    <p style="margin-top:14px">
+      Três eletros reais de plantão. Você lê comigo, ao vivo — e dessa vez a gente não para no
+      diagnóstico. Vai até a conduta: o que fazer nos dez primeiros minutos de cada um. Um deles a
+      maioria vai errar. Faz parte.
+    </p>
+    <cite>No final eu apresento uma novidade para quem quiser continuar comigo. Mas a aula vale sozinha.</cite>
+  </blockquote>
+</section>
+
+<!-- 04 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">04</span><h2>A oferta: Sala de Casos</h2></div>
+
+  <p>
+    O que falta no aluno não é conhecimento — é <b>repertório</b>. Repertório se constrói vendo caso
+    atrás de caso, todo mês, com alguém corrigindo. É exatamente o que a Sala de Casos entrega, e é
+    a continuidade que o próprio Dr. Vitor já tinha desenhado: curso, prática continuada,
+    proximidade.
+  </p>
+
+  <ul class="list">
+    <li><b>12 encontros mensais ao vivo</b> — noventa minutos, data fixa no mês. Um para muitos, com hora para começar e para terminar.</li>
+    <li><b>Formato fixo em todo encontro</b> — três casos comentados do começo ao fim, mais tira-dúvidas ao vivo. A previsibilidade é o que faz o aluno voltar.</li>
+    <li><b>Envie seu caso</b> — o aluno manda um eletro do próprio plantão, sem identificação do paciente, e os escolhidos são discutidos no encontro do mês. É o item de maior valor percebido do pacote: gera a sensação de acompanhamento individual sem consumir a agenda do Dr. Vitor.</li>
+    <li><b>Acervo de casos</b> — tudo gravado e catalogado, crescendo todo mês. Quem entra depois encontra mais valor do que quem entrou antes.</li>
+    <li><b>Trilha de conduta na emergência</b> — dor torácica, arritmias instáveis, parada cardiorrespiratória, edema agudo de pulmão, drogas vasoativas, gasometria e raio-X. É a lista que as fichas pediram: emergências cardiológicas apareceram em <b>7 de 7</b> respostas.</li>
+    <li><b>Protocolos de bolso</b> — material de consulta rápida, em PDF e no celular, para usar durante o plantão.</li>
+    <li><b>Grupo fechado de discussão</b> — espaço de casos entre um encontro e outro, com escopo definido: discussão clínica, não plantão de dúvidas.</li>
+    <li><b>Certificado com carga horária anual</b> — três dos quatro concorrentes diretos de ECG lideram a comunicação com carga horária certificada. O ECG Descomplicado é o único que não usa esse argumento.</li>
+  </ul>
+
+  <div class="price">
+    <p class="fig">R$&thinsp;997</p>
+    <div>
+      <span class="lbl">Oferta apresentada no final da aula</span>
+      <p>
+        Um ano de <b>Sala de Casos</b>: doze encontros ao vivo, acervo completo, trilha de conduta
+        e envio de casos. É o segundo degrau da esteira — e nasce validado, porque quem compra é
+        quem já comprou e já confia.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- 05 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">05</span><h2>O que precisa estar pronto</h2></div>
+
+  <ul class="checks">
+    <li><b>Base exportada</b> com nome, e-mail e telefone dos 330 alunos</li>
+    <li><b>Número secundário</b> para o disparo — nunca o número pessoal do Dr. Vitor</li>
+    <li><b>Três casos escolhidos</b> pelo Dr. Vitor, sendo um deles com armadilha</li>
+    <li><b>Data da aula</b> e as doze datas dos encontros da Sala de Casos</li>
+    <li><b>Transmissão</b> no YouTube ao vivo não listado, com o link circulando só no grupo</li>
+    <li><b>Checkout</b> da Sala de Casos criado e testado antes da aula</li>
+  </ul>
+</section>
+
+<!-- 06 ─────────────────────────────────────────────── -->
+<section>
+  <div class="shead"><span class="num">06</span><h2>Cronograma</h2></div>
+
+  <p>
+    Quatorze dias entre o aceite e a aula no ar. O prazo não é folga: é o tempo mínimo para a
+    pesquisa acumular volume antes de a aula acontecer.
+  </p>
+
+  <div class="tw">
+    <table>
+      <thead>
+        <tr><th>Quando</th><th>O quê</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="num">dias 1–2</td><td>Formulário, página do evento e grupo criados. Roteiro das três ondas de disparo escrito.</td></tr>
+        <tr><td class="num">dia 3</td><td>Exportação da base e preparo do número secundário.</td></tr>
+        <tr><td class="num">dia 4</td><td>Onda 1 — convite por WhatsApp e e-mail para os 330.</td></tr>
+        <tr><td class="num">dias 5–9</td><td>Entrada no grupo, aquecimento diário e onda 2 no penúltimo dia.</td></tr>
+        <tr><td class="num">dia 10</td><td>Roteiro final da aula, fechado em cima das respostas já colhidas na pesquisa.</td></tr>
+        <tr class="self"><td class="num">dia 11</td><td>Onda 3, lembrete uma hora antes e <b>aula ao vivo</b>.</td></tr>
+        <tr><td class="num">dias 12–14</td><td>Reprise no grupo e sequência de encerramento.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="note">
+    <span class="lbl">Próximo passo</span>
+    <p>
+      O Dr. Vitor escolhe os três casos e fecha as datas. O resto roda em quatorze dias.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <span>Plantão Descomplicado · Setembro 2026</span>
+  <span>Matheus Luswarghi</span>
+</footer>
+
+</div>
+</body>
+</html>
